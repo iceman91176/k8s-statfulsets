@@ -46,7 +46,7 @@ RUN set -x \
     && useradd $ZK_USER \
     && [ `id -u $ZK_USER` -eq 1000 ] \
     && [ `id -g $ZK_USER` -eq 1000 ] \
-    && chmod 755 /opt/zookeeper/bin/zkGenConfig.sh /opt/zookeeper/bin/zkOk.sh /opt/zookeeper/bin/zkMetrics.sh
+    && chmod 755 /opt/zookeeper/bin/zkGenConfig.sh /opt/zookeeper/bin/zkOk.sh /opt/zookeeper/bin/zkMetrics.sh \
     && mkdir -p $ZK_DATA_DIR $ZK_DATA_LOG_DIR $ZK_LOG_DIR /usr/share/zookeeper /tmp/zookeeper /usr/etc/ \
     && chown -R "$ZK_USER:$ZK_USER" /opt/$ZK_DIST $ZK_DATA_DIR $ZK_LOG_DIR $ZK_DATA_LOG_DIR /tmp/zookeeper \
     && chgrp -R 0 $ZK_DATA_DIR $ZK_DATA_LOG_DIR $ZK_LOG_DIR /usr/share/zookeeper /tmp/zookeeper /usr/etc/ \
