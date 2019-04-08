@@ -2,6 +2,7 @@
 This project contains a Docker image meant to facilitate the deployment of 
 [Apache ZooKeeper](https://zookeeper.apache.org/) on [Kubernetes](http://kubernetes.io/) using 
 [StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/). 
+
 ## Limitations
 1. Scaling is not currently supported. An ensemble's membership can not be updated in a safe way 
 in ZooKeeper 3.4.10 (The current stable release).
@@ -22,6 +23,17 @@ this user is zookeeper. The ZooKeeper package is installed into the /opt/zookeep
 configuration is sym linked into the /usr/etc/zookeeper/, and all executables are sym linked into 
 /usr/bin. The ZooKeeper data directories are contained in /var/lib/zookeeper. This is identical to 
 the RPM distribution that users should be familiar with.
+
+## Building Docker
+Container can be built and pushed with 
+```make```
+
+## Building with Openshift
+Use openshift_build.yaml to build with openshift.
+
+##Deploying Statefulset on Openshift/K8S
+Use zookeeper.yaml to deploy a statefulset. Tjhe initial number of pods is defined by no of replicas (2 = default). Adjust the PodDisruptionBudget when changin replica-size 
+  
 
 ## Configuration
 

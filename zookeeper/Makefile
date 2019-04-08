@@ -1,13 +1,13 @@
-VERSION=v3
-PROJECT_ID=google_samples
-PROJECT=gcr.io/${PROJECT_ID}
+VERSION=3.4.14
+PROJECT_ID=zookeeper
+PROJECT=registry.dev.witcom.services/openshift
 
 all: build
 
 build:
-	docker build --pull -t ${PROJECT}/k8szk:${VERSION} .
+	docker build --pull -t ${PROJECT}/zookeeper:${VERSION} .
 
 push: build
-	gcloud docker -- push ${PROJECT}/k8szk:${VERSION}
+	docker push ${PROJECT}/zookeeper:${VERSION}
 
 .PHONY: all build push
