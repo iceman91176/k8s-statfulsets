@@ -1,0 +1,107 @@
+#Replace LIST_OF_ZK_SERVERS with a comma separated List of zookeeper-services, e.g. zk-01.kafka.svc.cluster.local:2181
+#
+#Replace DOMAIN_FOR_OUTSIDE_ACCESS with the Domain that builds the FQDN with hostname of the Pod. To make that work you need a loadbalanced-service for each pod, with integration of external-dns 
+#
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+  labels:
+    component: kafka
+  name: kafka
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      component: kafka
+  serviceName: ksvc
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        component: kafka
+    spec:
+      containers:
+      - command:
+        - bash
+        - -c
+        - ' export KAFKA_LISTENERS=INSIDE://:29092,OUTSIDE://:9092 \
+          && export KAFKA_BROKER_ID=$(echo $HOSTNAME|rev|cut -d ''-'' -f 1|rev) \
+          && export KAFKA_ZOOKEEPER_CONNECT=LIST_OF_ZK_SERVERS
+          && export KAFKA_ADVERTISED_LISTENERS=INSIDE://:29092,OUTSIDE://$(echo $HOSTNAME).DOMAIN_FOR_OUTSIDE_ACCESS:9092
+          && export KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+          && export KAFKA_INTER_BROKER_LISTENER_NAME=INSIDE \
+          && /usr/bin/start-kafka.sh '
+        image: docker-registry.default.svc:5000/openshift/kafka:2.2.0
+        imagePullPolicy: IfNotPresent
+        name: kafka
+        ports:
+        - containerPort: 9092
+          name: external
+          protocol: TCP
+        - containerPort: 29092
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /kafka
+          name: kafka-datadir
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  updateStrategy:
+    type: OnDelete
+  volumeClaimTemplates:
+  - metadata:
+      creationTimestamp: null
+      name: kafka-datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-0
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: kafka-0.DOMAIN_FOR_OUTSIDE_ACCESS
+spec:
+  ports:
+  - port: 9092
+    name: external
+  type: LoadBalancer
+  selector:
+    statefulset.kubernetes.io/pod-name: kafka-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-1
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: kafka-1.DOMAIN_FOR_OUTSIDE_ACCESS
+spec:
+  ports:
+  - port: 9092
+    name: external
+  type: LoadBalancer
+  selector:
+    statefulset.kubernetes.io/pod-name: kafka-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bootstrap
+spec:
+  ports:
+  - port: 29092
+  selector:
+    app: kafka
+
